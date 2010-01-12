@@ -170,7 +170,8 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 		}
 		ptln('    <label for="vg__user">'.hsc($this->getLang('user')).'</label>');
 		if ($this->edit) {
-			ptln('    <input type="text" name="id" value="'.hsc($this->data['user']).'" disabled="disabled" />');
+			ptln('    <input type="text" name="user" value="'.hsc($this->data['user']).'" disabled="disabled" />');
+			ptln('    <input type="hidden" name="id" value="'.hsc($this->data['user']).'" />');
 		} else {
 			ptln('    <input type="text" id="vg__user" name="id" />');
 		}
