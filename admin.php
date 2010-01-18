@@ -11,15 +11,8 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 
 	var $data = array();
 
-    function getInfo(){
-      return array(
-        'author' => 'Dominik Eckelmann',
-        'email'  => 'eckelmann@cosmocode.de',
-        'date'   => '2010-01-05',
-        'name'   => 'Virtual Groups',
-        'desc'   => 'Allow an admin to place a user into a given group',
-        'url'    => 'http://www.dokuwiki.org/plugin:virtualgroup',
-      );
+	function getInfo(){
+        return confToHash(dirname(__FILE__).'/plugin.info.txt');
     }
 
     function getMenuSort() {

@@ -8,14 +8,7 @@ class action_plugin_virtualgroup extends DokuWiki_Action_Plugin {
 	var $users;
 
 	function getInfo(){
-		return array(
-        	'author' => 'Dominik Eckelmann',
-	        'email'  => 'eckelmann@cosmocode.de',
-    	    'date'   => '2010-01-05',
-        	'name'   => 'Virtual Groups',
-	        'desc'   => 'Allow an admin to place a user into a given group',
-    	    'url'    => 'http://www.dokuwiki.org/plugin:virtualgroup',
-		);
+        return confToHash(dirname(__FILE__).'/plugin.info.txt');
     }
 
 	function register(&$controller) {
