@@ -27,7 +27,7 @@ class action_plugin_virtualgroup extends DokuWiki_Action_Plugin {
 		if (!isset($this->users[$_SERVER['REMOTE_USER']])) {
 			return;
 		}
-		$grps = array_merge($USERINFO['grps'],$this->users[$_SERVER['REMOTE_USER']]);
+		$grps = array_unique(array_merge($USERINFO['grps'],$this->users[$_SERVER['REMOTE_USER']]));
 		$USERINFO['grps'] 		= $grps;
 		$auth->info['grps'] 	= $grps;
 		$auth->users[$_SERVER['REMOTE_USER']]['grps'] = $grps;
@@ -39,7 +39,7 @@ class action_plugin_virtualgroup extends DokuWiki_Action_Plugin {
 	 * load the users -> group connection
 	 */
 	function _load() {
-		// determein the path to the data
+		// determine the path to the data
 		$userFile = DOKU_INC . 'data/virtualgrp.php';
 
 		// if there is no file we hava no data ;-)
