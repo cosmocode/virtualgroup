@@ -22,4 +22,6 @@ $lang['del'] = 'Löschen';
 $lang['edit'] = 'Bearbeiten';
 
 $lang['change'] = 'Ändern';
-?>
+
+$lang['usercharerr'] = 'Benutzer konnte nicht gespreichert werden. Dies kann daran liegen das er Zeichen enthält die nicht von der Authentifizierung unterstützt werden.';
+$lang['usercharerr'] = 'Gruppe konnte nicht gespreichert werden. Dies kann daran liegen das sie Zeichen enthält die nicht von der Authentifizierung unterstützt werden.';

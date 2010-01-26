@@ -23,10 +23,11 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
     /**
      * handle user request
      */
-    function handle() {
+	function handle() {
+		global $auth;
 		$this->_load();
 
-		$act = $_REQUEST['cmd'];
+		$act  = $_REQUEST['cmd'];
 		$uid  = $_REQUEST['uid'];
 		switch ($act) {
 			case 'del' :$this->del($uid);break;
@@ -103,6 +104,39 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 
 
 	function _save() {
+		// clean user and group names
+		global $auth;
+		foreach ($this->users as $u => $grps) {
+			$cleanUser = $auth->cleanUser($u);
+			if ($u != $cleanUser) {
+				if (empty($cleanUser)) {
+					msg($this->getLang('usercharerr'),-1);
+					unset($this->users[$u]);
+					continue;
+				}
+				$this->users[ $cleanUser ] = $this->users[$u];
+				unset($this->users[$u]);
+			}
+
+			$groupCount = count($this->users[$cleanUser]);
+			for ($i=0; $i<$groupCount; $i++) {
+				$clean = $auth->cleanGroup($this->users[$cleanUser][$i]);
+
+				if (empty($clean)) {
+					msg($this->getLang('grpcharerr'),-1);
+					unset($this->users[$cleanUser][$i]);
+				} else {
+					if ($clean != $this->users[$cleanUser][$i]) {
+						$this->users[$cleanUser][$i] = $clean;
+					}
+				}
+			}
+
+			if (count($this->users[$cleanUser]) == 0) {
+				unset($this->users[$cleanUser]);
+			}
+		}
+
 		// determein the path to the data
 		$userFile = DOKU_INC . 'data/virtualgrp.php';
 
