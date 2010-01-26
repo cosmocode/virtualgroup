@@ -3,6 +3,7 @@
 if(!defined('DOKU_INC')) define('DOKU_INC',realpath(dirname(__FILE__).'/../../').'/');
 if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 require_once(DOKU_PLUGIN.'admin.php');
+require_once(DOKU_INC.'inc/common.php');
 
 class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 
@@ -26,16 +27,17 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 		$this->_load();
 
 		$act = $_REQUEST['cmd'];
-		$id  = $_REQUEST['id'];
+		$uid  = $_REQUEST['uid'];
 		switch ($act) {
-			case 'del' :$this->del($id);break;
-			case 'edit':$this->edit($id);break;
-			case 'add' :$this->add($id);break;
+			case 'del' :$this->del($uid);break;
+			case 'edit':$this->edit($uid);break;
+			case 'add' :$this->add($uid);break;
 		}
 
 	}
 
 	function edit($user) {
+		if (!checkSecurityToken()) return false;
 		$grp = array();
 		// on input change the data
 		if (isset($_REQUEST['grp']) && isset($this->users[$user])) {
@@ -59,6 +61,7 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 	}
 
 	function del($user) {
+		if (!checkSecurityToken()) return false;
 		// user don't exist
 		if (!$this->users[$user]) {
 			return;
@@ -70,6 +73,7 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 	}
 
 	function add($user) {
+		if (!checkSecurityToken()) return false;
 		$grp = $_REQUEST['grp'];
 		if (empty($user)) {
 			msg($this->getLang('nouser'),-1);
@@ -151,6 +155,7 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 		global $ID;
 		ptln('<form action="'.wl($ID).'" method="post">');
 		ptln('<input type="hidden" name="cmd" value="'. ($this->edit?'edit':'add').'" />');
+		ptln('<input type="hidden" name="sectok" value="'.getSecurityToken().'" />');
 		ptln('<input type="hidden" name="page" value="'.$this->getPluginName().'" />');
 		ptln('<input type="hidden" name="do" value="admin" />');
 
@@ -164,9 +169,9 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 		ptln('    <label for="vg__user">'.hsc($this->getLang('user')).'</label>');
 		if ($this->edit) {
 			ptln('    <input type="text" name="user" value="'.hsc($this->data['user']).'" disabled="disabled" />');
-			ptln('    <input type="hidden" name="id" value="'.hsc($this->data['user']).'" />');
+			ptln('    <input type="hidden" name="uid" value="'.hsc($this->data['user']).'" />');
 		} else {
-			ptln('    <input type="text" id="vg__user" name="id" />');
+			ptln('    <input type="text" id="vg__user" name="uid" />');
 		}
 		ptln('</p><p>');
 		ptln('    <label for="vg__grp">'.hsc($this->getLang('grp')).'</label>');
@@ -195,9 +200,9 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 			ptln('    <td>'.hsc($user).'</td>');
 			ptln('    <td>'.hsc(implode(', ',$grps)).'</td>');
 			ptln('    <td class="act">');
-			ptln('      <a href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'edit' ,'id'=>$user)).'"><img src="lib/plugins/virtualgroup/images/user_edit.png"> '.hsc($this->getLang('edit')).'</a>');
+			ptln('      <a href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'edit' ,'uid'=>$user, 'sectok'=>getSecurityToken())).'"><img src="lib/plugins/virtualgroup/images/user_edit.png"> '.hsc($this->getLang('edit')).'</a>');
 			ptln(' &bull; ');
-			ptln('      <a href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'del','id'=>$user)).'"><img src="lib/plugins/virtualgroup/images/user_delete.png"> '.hsc($this->getLang('del')).'</a>');
+			ptln('      <a href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'del','uid'=>$user, 'sectok'=>getSecurityToken())).'"><img src="lib/plugins/virtualgroup/images/user_delete.png"> '.hsc($this->getLang('del')).'</a>');
 			ptln('    </td>');
 			ptln('  </tr>');
 		}
