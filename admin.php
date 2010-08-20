@@ -104,8 +104,8 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 
 
     function _save() {
-        // clean user and group names
         global $auth;
+        global $conf;
         foreach ($this->users as $u => $grps) {
             $cleanUser = $auth->cleanUser($u);
             if ($u != $cleanUser) {
@@ -138,7 +138,7 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
         }
 
         // determein the path to the data
-        $userFile = DOKU_INC . 'data/virtualgrp.php';
+        $userFile = $conf['savedir'] . '/virtualgrp.php';
 
         // serialize it
         $content = serialize($this->users);
@@ -152,8 +152,9 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
      * load the users -> group connection
      */
     function _load() {
+        global $conf;
         // determein the path to the data
-        $userFile = DOKU_INC . 'data/virtualgrp.php';
+        $userFile = $conf['savedir'] . '/virtualgrp.php';
 
         // if there is no file we hava no data ;-)
         if (!is_file($userFile)) {

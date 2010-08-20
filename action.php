@@ -37,8 +37,9 @@ class action_plugin_virtualgroup extends DokuWiki_Action_Plugin {
      * load the users -> group connection
      */
     function _load() {
+        global $conf;
         // determine the path to the data
-        $userFile = DOKU_INC . 'data/virtualgrp.php';
+        $userFile = $conf['savedir'] . '/virtualgrp.php';
 
         // if there is no file we hava no data ;-)
         if (!is_file($userFile)) {
