@@ -1,33 +1,33 @@
 div.dokuwiki  fieldset.vg {
-	width:55em;
-	margin-bottom:2em;
+    width:55em;
+    margin-bottom:2em;
 }
 
 div.dokuwiki fieldset.vg label {
-	width:20em;
-	float:left;
+    width:20em;
+    float:left;
 }
 
 div.dokuwiki fieldset.vg input {
-	width:25em;
-	float:left;
+    width:25em;
+    float:left;
 }
 
 div.dokuwiki fieldset.vg input.send {
-	float:none;
-	margin-top:1em;
+    float:none;
+    margin-top:1em;
 }
 
 #vg__show th.user {
-	width:20em;
+    width:20em;
 }
 #vg__show th.act,
 #vg__show td.act{
-	width:15em;
-	text-align:center;
+    width:15em;
+    text-align:center;
 }
 
 #vg__show {
-	width:100%;
-	margin-top:2em;
+    width:100%;
+    margin-top:2em;
 }
