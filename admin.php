@@ -188,61 +188,47 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
      */
     function html() {
         global $ID;
-        ptln('<form action="'.wl($ID).'" method="post">');
-        ptln('<input type="hidden" name="cmd" value="'. ($this->edit?'edit':'add').'" />');
-        ptln('<input type="hidden" name="sectok" value="'.getSecurityToken().'" />');
-        ptln('<input type="hidden" name="page" value="'.$this->getPluginName().'" />');
-        ptln('<input type="hidden" name="do" value="admin" />');
-
-        ptln('  <fieldset class="vg">');
-        ptln('<p>');
+        $form = new Doku_Form(array('id' => 'vg', 'action' => wl($ID)));
+        $form->addHidden('cmd', $this->edit?'edit':'add');
+        $form->addHidden('sectok', getSecurityToken());
+        $form->addHidden('page', $this->getPluginName());
+        $form->addHidden('do', 'admin');
+        $form->startFieldset($this->getLang($this->edit ? 'edituser' : 'adduser'));
         if ($this->edit) {
-            ptln('    <legend>'.hsc($this->getLang('edituser')).'</legend>');
+            $form->addElement(form_makeField('text', 'user', $this->data['user'], 
+                                             $this->getLang('user'), '', '',
+                                             array('disabled' => 'disabled')));
+            $form->addHidden('uid', $this->data['user']);
         } else {
-            ptln('    <legend>'.hsc($this->getLang('adduser')).'</legend>');
+            $form->addElement(form_makeField('text', 'uid', '',
+                                             $this->getLang('user')));
         }
-        ptln('    <label for="vg__user">'.hsc($this->getLang('user')).'</label>');
-        if ($this->edit) {
-            ptln('    <input type="text" name="user" value="'.hsc($this->data['user']).'" disabled="disabled" />');
-            ptln('    <input type="hidden" name="uid" value="'.hsc($this->data['user']).'" />');
-        } else {
-            ptln('    <input type="text" id="vg__user" name="uid" />');
-        }
-        ptln('</p><p>');
-        ptln('    <label for="vg__grp">'.hsc($this->getLang('grp')).'</label>');
-        if ($this->edit) {
-            ptln('    <input type="text" id="vg__grp" name="grp" value="'.hsc(implode(', ',$this->data['grp'])).'" />');
-        } else {
-            ptln('    <input type="text" id="vg__grp" name="grp" />');
-        }
-        ptln('</p>');
-        if ($this->edit) {
-            ptln('    <input type="submit" value="'.hsc($this->getLang('change')).'" class="send" />');
-        } else {
-            ptln('    <input type="submit" value="'.hsc($this->getLang('add')).'" class="send" />');
-        }
-        ptln('  </fieldset>');
-        ptln('</form>');
+        $form->addElement(form_makeField('text', 'grp',
+                                         $this->edit ? implode(', ',$this->data['grp'])
+                                                     : '',
+                                         $this->getLang('grp')));
+        $form->addElement(form_makeButton('submit', '',
+                                          $this->getLang($this->edit?'change':'add')));
+        $form->printForm();
 
         ptln('<table class="inline" id="vg__show">');
         ptln('  <tr>');
         ptln('    <th class="user">'.hsc($this->getLang('users')).'</th>');
         ptln('    <th class="grp">'.hsc($this->getLang('grps')).'</th>');
-        ptln('    <th class="act"> </th>');
+        ptln('    <th> </th>');
         ptln('  </tr>');
         foreach ($this->users as $user => $grps) {
             ptln('  <tr>');
             ptln('    <td>'.hsc($user).'</td>');
             ptln('    <td>'.hsc(implode(', ',$grps)).'</td>');
             ptln('    <td class="act">');
-            ptln('      <a href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'edit' ,'uid'=>$user, 'sectok'=>getSecurityToken())).'"><img src="lib/plugins/virtualgroup/images/user_edit.png"> '.hsc($this->getLang('edit')).'</a>');
+            ptln('      <a class="vg_edit" href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'edit' ,'uid'=>$user, 'sectok'=>getSecurityToken())).'">'.hsc($this->getLang('edit')).'</a>');
             ptln(' &bull; ');
-            ptln('      <a href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'del','uid'=>$user, 'sectok'=>getSecurityToken())).'"><img src="lib/plugins/virtualgroup/images/user_delete.png"> '.hsc($this->getLang('del')).'</a>');
+            ptln('      <a class="vg_del" href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'del','uid'=>$user, 'sectok'=>getSecurityToken())).'">'.hsc($this->getLang('del')).'</a>');
             ptln('    </td>');
             ptln('  </tr>');
         }
 
         ptln('</table>');
     }
-
 }
