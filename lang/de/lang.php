@@ -7,6 +7,7 @@ $lang['nouser'] = 'Sie müssen einen Benutzer angeben';
 $lang['nogrp']  = 'Sie müssen eine Gruppe angeben.';
 
 
+$lang['editgroup'] = 'Gruppe bearbeiten';
 $lang['edituser'] = 'Benutzer bearbeiten';
 $lang['adduser']  = 'Benutzer einer Gruppe hinzufügen';
 

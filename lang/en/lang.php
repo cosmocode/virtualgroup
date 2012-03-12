@@ -6,6 +6,7 @@ $lang['menu'] = 'Virtual Groups';
 $lang['nouser'] = 'You have to provide a username.';
 $lang['nogrp']  = 'You have to provide a groupname.';
 
+$lang['editgroup'] = 'Edit group';
 $lang['edituser'] = 'Edit user';
 $lang['adduser']  = 'Add user to a group';
 

@@ -6,6 +6,7 @@ $lang['menu'] = 'Virtuální skupiny';
 $lang['nouser'] = 'Musíte zadat uživatelské jméno.';
 $lang['nogrp']  = 'Musíte zadat název skupiny.';
 
+$lang['editgroup'] = 'Editovat Skupina';
 $lang['edituser'] = 'Editovat uživatele';
 $lang['adduser']  = 'Přidat uživatele do skupiny';
 

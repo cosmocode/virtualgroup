@@ -32,6 +32,7 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
         switch ($act) {
             case 'del' :$this->del($uid);break;
             case 'edit':$this->edit($uid);break;
+            case 'editgroup':$this->editgroup($uid);break;
             case 'add' :$this->add($uid);break;
         }
 
@@ -59,6 +60,44 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
         $this->edit = true;
         $this->data['user'] = $user;
         $this->data['grp'] = $grp;
+    }
+
+    function editgroup($group) {
+        if (!checkSecurityToken()) return false;
+        
+        // on input change the data
+        if (isset($_REQUEST['users']) && isset($this->groups[$group])) {
+
+            // get the users as array
+            $users = str_replace(' ','',$_REQUEST['users']);
+            $users = array_unique(explode(',',$users));
+
+            // delete removed users from group 
+            foreach (array_diff($this->groups[$group],$users) as $user) {
+                $idx = array_search($group,$this->users[$user]);
+                if ($idx !== false) {
+                    unset($this->users[$user][$idx]);
+                    $this->users[$user]=array_values($this->users[$user]);
+                    if (!count($this->users[$user])) {
+                        unset($this->users[$user]);
+                    }
+                }
+            }
+
+            // add new users to group 
+            foreach (array_diff($users,$this->groups[$group]) as $user) {
+                if ($user && (!isset($this->users[$user]) || !in_array($group,$this->users[$user]))) {
+                    $this->users[$user][] = $group;
+                }
+            }
+            $this->_save();
+            return;
+        }
+
+        // go to edit mode ;-)
+        $this->editgroup = true;
+        $this->data['users'] = $this->groups[$group];
+        $this->data['group'] = $group;
     }
 
     function del($user) {
@@ -145,6 +184,9 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 
         // save it
         file_put_contents($userFile, $content);
+
+        // update groups-array, since the users-array probably has changed.
+        $this->groups = $this->translateUsers();
     }
 
 
@@ -181,6 +223,27 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 
         // place the users array
         $this->users = $users;
+        $this->groups = $this->translateUsers();
+    }
+
+    /**
+     * translate the users-Array (groups a user is in) to a group-array (users in a group) and sort the user lists
+     */
+    function translateUsers() {
+        $groups = array();
+
+        foreach ($this->users as $user => $grps) {
+            foreach ($grps as $grp) {
+                $groups[$grp][]=$user;
+            }
+        }
+
+        foreach ($groups as $group => $users) {
+            sort($users);
+            $groups[$group]=$users;
+        }
+
+        return $groups;
     }
 
     /**
@@ -189,26 +252,42 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
     function html() {
         global $ID;
         $form = new Doku_Form(array('id' => 'vg', 'action' => wl($ID)));
-        $form->addHidden('cmd', $this->edit?'edit':'add');
+	if ($this->editgroup) {
+                $form->addHidden('cmd', 'editgroup');
+        } elseif ($this->edit) {
+                $form->addHidden('cmd', 'edit');
+        } else {
+                $form->addHidden('cmd', 'add');
+        }        
         $form->addHidden('sectok', getSecurityToken());
         $form->addHidden('page', $this->getPluginName());
         $form->addHidden('do', 'admin');
-        $form->startFieldset($this->getLang($this->edit ? 'edituser' : 'adduser'));
-        if ($this->edit) {
+        if ($this->editgroup) {
+            $form->startFieldset($this->getLang('editgroup'));
+            $form->addElement(form_makeField('text', 'group', $this->data['group'], 
+                                             $this->getLang('grp'), '', '',
+                                             array('disabled' => 'disabled')));
+            $form->addHidden('uid', $this->data['group']);
+        } elseif ($this->edit) {
+            $form->startFieldset($this->getLang('edituser'));
             $form->addElement(form_makeField('text', 'user', $this->data['user'], 
                                              $this->getLang('user'), '', '',
                                              array('disabled' => 'disabled')));
             $form->addHidden('uid', $this->data['user']);
         } else {
+            $form->startFieldset($this->getLang('adduser'));
             $form->addElement(form_makeField('text', 'uid', '',
                                              $this->getLang('user')));
         }
-        $form->addElement(form_makeField('text', 'grp',
-                                         $this->edit ? implode(', ',$this->data['grp'])
-                                                     : '',
-                                         $this->getLang('grp')));
+        if ($this->editgroup) {
+                $form->addElement(form_makeField('text', 'users',implode(', ',$this->data['users']),$this->getLang('users')));
+        } elseif ($this->edit) {
+                $form->addElement(form_makeField('text', 'grp',implode(', ',$this->data['grp']),$this->getLang('grp')));
+        } else {
+                $form->addElement(form_makeField('text', 'grp','',$this->getLang('grp')));
+        }
         $form->addElement(form_makeButton('submit', '',
-                                          $this->getLang($this->edit?'change':'add')));
+                                          $this->getLang(($this->edit|$this->editgroup)?'change':'add')));
         $form->printForm();
 
         ptln('<table class="inline" id="vg__show">');
@@ -229,6 +308,24 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
             ptln('  </tr>');
         }
 
+        ptln('</table>');
+
+        ptln('<table class="inline" id="vg__show">');
+        ptln('  <tr>');
+        ptln('    <th class="grp">'.hsc($this->getLang('grps')).'</th>');
+        ptln('    <th class="user">'.hsc($this->getLang('users')).'</th>');
+        ptln('    <th class="act"> </th>');
+        ptln('  </tr>');
+        foreach ($this->groups as $group => $users) {
+            ptln('  <tr>');
+            ptln('    <td>'.hsc($group).'</td>');
+            ptln('    <td>'.hsc(implode(', ',$users)).'</td>');
+            ptln('    <td class="act">');
+            ptln('      <a href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'editgroup' ,'uid'=>$group, 'sectok'=>getSecurityToken())).'"><img src="lib/plugins/virtualgroup/images/user_edit.png"> '.hsc($this->getLang('edit')).'</a>');
+            ptln('    </td>');
+            ptln('  </tr>');
+        }
+    
         ptln('</table>');
     }
 }
