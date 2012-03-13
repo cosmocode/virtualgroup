@@ -8,9 +8,27 @@ require_once(DOKU_INC.'inc/common.php');
 class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 
     var $users;
+    var $groups;
+    var $_auth = null;        // auth object
+    
+    var $editgroup = false;
     var $edit = false;
 
     var $data = array();
+
+    function admin_plugin_virtualgroup () {
+        global $auth;
+
+        $this->setupLocale();
+
+        if (isset($auth)) {
+      
+           // we're good to go
+          $this->_auth = & $auth;
+
+        }
+
+    }
 
     function getInfo(){
         return confToHash(dirname(__FILE__).'/plugin.info.txt');
@@ -297,8 +315,10 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
         ptln('    <th> </th>');
         ptln('  </tr>');
         foreach ($this->users as $user => $grps) {
+            $userdata=$this->_auth->getUserData($user);
+
             ptln('  <tr>');
-            ptln('    <td>'.hsc($user).'</td>');
+            ptln('    <td>'.hsc($user).(isset($userdata['name'])?hsc(' ('.$userdata['name'].')'):'').'</td>');
             ptln('    <td>'.hsc(implode(', ',$grps)).'</td>');
             ptln('    <td class="act">');
             ptln('      <a class="vg_edit" href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'edit' ,'uid'=>$user, 'sectok'=>getSecurityToken())).'">'.hsc($this->getLang('edit')).'</a>');
