@@ -7,6 +7,7 @@ $lang['nouser'] = 'You have to provide a username.';
 $lang['nogrp']  = 'You have to provide a groupname.';
 
 $lang['editgroup'] = 'Edit group';
+$lang['addgroup'] = 'Add a group';
 $lang['edituser'] = 'Edit user';
 $lang['adduser']  = 'Add user to a group';
 

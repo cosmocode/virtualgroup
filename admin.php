@@ -50,8 +50,10 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
         switch ($act) {
             case 'del' :$this->del($uid);break;
             case 'edit':$this->edit($uid);break;
-            case 'editgroup':$this->editgroup($uid);break;
             case 'add' :$this->add($uid);break;
+            case 'addgroup':$this->addgroup($uid);break;
+            case 'editgroup':$this->editgroup($uid);break;
+            case 'delgroup' :$this->delgroup($uid);break;
         }
 
     }
@@ -130,7 +132,28 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
         $this->_save();
     }
 
-    function add($user) {
+    function delgroup($group) {
+        if (!checkSecurityToken()) return false;
+        // group doesn't exist
+        if (!$this->groups[$group]) {
+            return;
+        }
+
+        // delete all users from group 
+        foreach ($this->groups[$group] as $user) {
+            $idx = array_search($group,$this->users[$user]);
+            if ($idx !== false) {
+                unset($this->users[$user][$idx]);
+                $this->users[$user]=array_values($this->users[$user]);
+                if (!count($this->users[$user])) {
+                    unset($this->users[$user]);
+                }
+            }
+        }
+        $this->_save();
+    }
+
+function add($user) {
         if (!checkSecurityToken()) return false;
         $grp = $_REQUEST['grp'];
         if (empty($user)) {
@@ -157,6 +180,32 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
         // save the changes
         $this->_save();
 
+    }
+
+    function addgroup($group) {
+        if (!checkSecurityToken()) return false;
+
+        if (empty($group)) {
+            msg($this->getLang('nogrp'),-1);
+            return;
+        }
+        if (empty($_REQUEST['users'])) {
+            msg($this->getLang('nouser'),-1);
+            return;
+        }
+
+        // get the users as array
+        $users = str_replace(' ','',$_REQUEST['users']);
+        $users = array_unique(explode(',',$users));
+
+        // add new users to group 
+        foreach ($users as $user) {
+                if ($user && (!isset($this->users[$user]) || !in_array($group,$this->users[$user]))) {
+                    $this->users[$user][] = $group;
+                }
+        }
+        $this->_save();
+        return;
     }
 
 
@@ -270,43 +319,28 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
     function html() {
         global $ID;
         $form = new Doku_Form(array('id' => 'vg', 'action' => wl($ID)));
-	if ($this->editgroup) {
-                $form->addHidden('cmd', 'editgroup');
-        } elseif ($this->edit) {
-                $form->addHidden('cmd', 'edit');
-        } else {
-                $form->addHidden('cmd', 'add');
-        }        
+        $form->addHidden('cmd', $this->edit?'edit':'add');
         $form->addHidden('sectok', getSecurityToken());
         $form->addHidden('page', $this->getPluginName());
         $form->addHidden('do', 'admin');
-        if ($this->editgroup) {
-            $form->startFieldset($this->getLang('editgroup'));
-            $form->addElement(form_makeField('text', 'group', $this->data['group'], 
-                                             $this->getLang('grp'), '', '',
-                                             array('disabled' => 'disabled')));
-            $form->addHidden('uid', $this->data['group']);
-        } elseif ($this->edit) {
-            $form->startFieldset($this->getLang('edituser'));
-            $form->addElement(form_makeField('text', 'user', $this->data['user'], 
+        $form->startFieldset($this->getLang($this->edit ? 'edituser' : 'adduser'));
+        if ($this->edit) {
+            $form->addElement(form_makeField('text', 'user', $this->data['user'],
                                              $this->getLang('user'), '', '',
                                              array('disabled' => 'disabled')));
             $form->addHidden('uid', $this->data['user']);
         } else {
-            $form->startFieldset($this->getLang('adduser'));
             $form->addElement(form_makeField('text', 'uid', '',
                                              $this->getLang('user')));
         }
-        if ($this->editgroup) {
-                $form->addElement(form_makeField('text', 'users',implode(', ',$this->data['users']),$this->getLang('users')));
-        } elseif ($this->edit) {
-                $form->addElement(form_makeField('text', 'grp',implode(', ',$this->data['grp']),$this->getLang('grp')));
-        } else {
-                $form->addElement(form_makeField('text', 'grp','',$this->getLang('grp')));
-        }
+        $form->addElement(form_makeField('text', 'grp',
+                                         $this->edit ? implode(', ',$this->data['grp'])
+                                                     : '',
+                                         $this->getLang('grp')));
         $form->addElement(form_makeButton('submit', '',
-                                          $this->getLang(($this->edit|$this->editgroup)?'change':'add')));
+                                          $this->getLang($this->edit?'change':'add')));
         $form->printForm();
+
 
         ptln('<table class="inline" id="vg__show">');
         ptln('  <tr>');
@@ -330,6 +364,28 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 
         ptln('</table>');
 
+        $form = new Doku_Form(array('id' => 'vg', 'action' => wl($ID)));
+        $form->addHidden('cmd', $this->editgroup?'editgroup':'addgroup');
+        $form->addHidden('sectok', getSecurityToken());
+        $form->addHidden('page', $this->getPluginName());
+        $form->addHidden('do', 'admin');
+        if ($this->editgroup) {
+            $form->startFieldset($this->getLang('editgroup'));
+            $form->addElement(form_makeField('text', 'group', $this->data['group'], 
+                                             $this->getLang('grp'), '', '',
+                                             array('disabled' => 'disabled')));
+            $form->addHidden('uid', $this->data['group']);
+            $form->addElement(form_makeField('text', 'users',implode(', ',$this->data['users']),$this->getLang('users')));
+        } else {
+            $form->startFieldset($this->getLang('addgroup'));
+            $form->addElement(form_makeField('text', 'uid','', $this->getLang('grp')));
+            $form->addElement(form_makeField('text', 'users', '', $this->getLang('users')));
+        }
+        $form->addElement(form_makeButton('submit', '',
+                                          $this->getLang($this->editgroup?'change':'add')));
+        $form->printForm();
+
+
         ptln('<table class="inline" id="vg__show">');
         ptln('  <tr>');
         ptln('    <th class="grp">'.hsc($this->getLang('grps')).'</th>');
@@ -341,7 +397,9 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
             ptln('    <td>'.hsc($group).'</td>');
             ptln('    <td>'.hsc(implode(', ',$users)).'</td>');
             ptln('    <td class="act">');
-            ptln('      <a href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'editgroup' ,'uid'=>$group, 'sectok'=>getSecurityToken())).'"><img src="lib/plugins/virtualgroup/images/user_edit.png"> '.hsc($this->getLang('edit')).'</a>');
+            ptln('      <a class="vg_edit" href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'editgroup' ,'uid'=>$group, 'sectok'=>getSecurityToken())).'">'.hsc($this->getLang('edit')).'</a>');
+            ptln(' &bull; ');
+            ptln('      <a class="vg_del" href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'delgroup','uid'=>$group, 'sectok'=>getSecurityToken())).'">'.hsc($this->getLang('del')).'</a>');
             ptln('    </td>');
             ptln('  </tr>');
         }
