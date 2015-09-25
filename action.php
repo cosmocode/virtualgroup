@@ -27,6 +27,9 @@ class action_plugin_virtualgroup extends DokuWiki_Action_Plugin {
         if (!isset($this->users[$_SERVER['REMOTE_USER']])) {
             return;
         }
+        if (!isset($USERINFO['grps'])) {
+            $USERINFO['grps'] = array();
+        }
         $grps = array_unique(array_merge($USERINFO['grps'],$this->users[$_SERVER['REMOTE_USER']]));
         $USERINFO['grps']       = $grps;
         $_SESSION[DOKU_COOKIE]['auth']['info']['grps'] = $grps;
