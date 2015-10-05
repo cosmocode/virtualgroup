@@ -1,7 +1,7 @@
 base    virtualgroup
 author  Dominik Eckelmann
 email   dokuwiki@cosmocode.de
-date    2014-05-28
+date    2015-09-21
 name    Virtual Group
 desc    Create virtual user groups in DokuWiki
 url     http://www.dokuwiki.org/plugin:virtualgroup
