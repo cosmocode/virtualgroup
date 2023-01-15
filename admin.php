@@ -16,7 +16,7 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
 
     var $data = array();
 
-    function admin_plugin_virtualgroup () {
+    function __construct () {
         global $auth;
 
         $this->setupLocale();
