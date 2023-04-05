@@ -329,16 +329,20 @@ function add($user) {
                                              $this->getLang('user'), '', '',
                                              array('disabled' => 'disabled')));
             $form->addHidden('uid', $this->data['user']);
+	    $form->addElement('<br />');
         } else {
             $form->addElement(form_makeField('text', 'uid', '',
                                              $this->getLang('user')));
+	    $form->addElement('<br />');
         }
         $form->addElement(form_makeField('text', 'grp',
                                          $this->edit ? implode(', ',$this->data['grp'])
                                                      : '',
                                          $this->getLang('grp')));
+	    $form->addElement('<br />');
         $form->addElement(form_makeButton('submit', '',
                                           $this->getLang($this->edit?'change':'add')));
+	$form->endFieldset();
         $form->printForm();
 
 
@@ -374,15 +378,20 @@ function add($user) {
             $form->addElement(form_makeField('text', 'group', $this->data['group'], 
                                              $this->getLang('grp'), '', '',
                                              array('disabled' => 'disabled')));
+	    $form->addElement('<br />');
             $form->addHidden('uid', $this->data['group']);
             $form->addElement(form_makeField('text', 'users',implode(', ',$this->data['users']),$this->getLang('users')));
+	    $form->addElement('<br />');
         } else {
             $form->startFieldset($this->getLang('addgroup'));
             $form->addElement(form_makeField('text', 'uid','', $this->getLang('grp')));
+	    $form->addElement('<br />');
             $form->addElement(form_makeField('text', 'users', '', $this->getLang('users')));
+	    $form->addElement('<br />');
         }
         $form->addElement(form_makeButton('submit', '',
                                           $this->getLang($this->editgroup?'change':'add')));
+	$form->endFieldset();
         $form->printForm();
 
 
