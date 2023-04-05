@@ -12,7 +12,7 @@ class action_plugin_virtualgroup extends DokuWiki_Action_Plugin {
     }
 
     function register(Doku_Event_Handler $controller) {
-        $controller->register_hook('DOKUWIKI_STARTED', 'BEFORE', $this,'start');
+        $controller->register_hook('DOKUWIKI_INIT_DONE', 'BEFORE', $this,'start');
     }
 
     function start(&$event, $param) {
@@ -42,7 +42,7 @@ class action_plugin_virtualgroup extends DokuWiki_Action_Plugin {
     function _load() {
         global $conf;
         // determine the path to the data
-        $userFile = $conf['savedir'] . '/virtualgrp.php';
+        $userFile = DOKU_INC . $conf['savedir'] . '/virtualgrp.php';
 
         // if there is no file we hava no data ;-)
         if (!is_file($userFile)) {
