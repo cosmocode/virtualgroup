@@ -243,11 +243,11 @@ function add($user) {
             }
         }
 
-        // determein the path to the data
-        $userFile = $conf['savedir'] . '/virtualgrp.php';
+        // determine the path to the data
+        $userFile = DOKU_CONF . 'virtualgrp.json';
 
         // serialize it
-        $content = serialize($this->users);
+        $content = json_encode($this->users, 2);
 
         // save it
         file_put_contents($userFile, $content);
@@ -263,7 +263,7 @@ function add($user) {
     function _load() {
         global $conf;
         // determein the path to the data
-        $userFile = $conf['savedir'] . '/virtualgrp.php';
+        $userFile = DOKU_CONF . 'virtualgrp.json';
 
         // if there is no file we hava no data ;-)
         if (!is_file($userFile)) {
@@ -280,11 +280,12 @@ function add($user) {
             return;
         }
 
-        $users = unserialize($content);
+        $users = json_decode($content, true);
         // check for invalid data
         if ($users === FALSE) {
             $this->users = array();
-            @unlink($userFile);
+            // Do NOT delete malformed configuration file here,
+            // otherwise compat mode will restore possibly outdated permissions.
             return;
         }
 

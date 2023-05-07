@@ -40,9 +40,41 @@ class action_plugin_virtualgroup extends DokuWiki_Action_Plugin {
      * load the users -> group connection
      */
     function _load() {
+        // determine the path to the data
+        $userFile = DOKU_CONF . 'virtualgrp.json';
+
+        // if there is no file, try loading (and converting) from the old location
+        if (!is_readable($userFile)) {
+            $this->_compat_load();
+            return;
+        }
+
+        // read the file
+        $content = file_get_contents($userFile);
+
+        // if its empty we have no data also
+        if (empty($content)) {
+            $this->users = array();
+            return;
+        }
+
+        $users = json_decode($content, true);
+        // check for invalid data
+        if ($users === FALSE) {
+            $this->users = array();
+            // Do NOT delete malformed configuration file here,
+            // otherwise compat mode will restore possibly outdated permissions.
+            return;
+        }
+
+        $this->users = $users;
+    }
+
+
+    function _compat_load() {
         global $conf;
         // determine the path to the data
-        $userFile = DOKU_INC . $conf['savedir'] . '/virtualgrp.php';
+        $userFile = $conf['savedir'] . '/virtualgrp.php';
 
         // if there is no file we hava no data ;-)
         if (!is_file($userFile)) {
@@ -69,7 +101,22 @@ class action_plugin_virtualgroup extends DokuWiki_Action_Plugin {
 
         // place the users array
         $this->users = $users;
+
+        // try to reencode $users in json format, give up if not possible
+        $json = json_encode($users, 2);
+        if ($json === FALSE) {
+            return;
+        }
+
+        // try to write in new location, give up if not possible
+        $newUserFile = DOKU_CONF . 'virtualgrp.json';
+        $written = file_put_contents($newUserFile, $json);
+        if ($written === FALSE) {
+            return;
+        }
+
+        // try to remove old location, ignoring errors
+        @unlink($userFile);
     }
 }
-
 ?>
