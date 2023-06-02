@@ -45,6 +45,8 @@ class admin_plugin_virtualgroup extends DokuWiki_Admin_Plugin {
         global $auth;
         $this->_load();
 
+        if (!isset($_REQUEST['cmd']) || !isset($_REQUEST['uid'])) return;
+
         $act  = $_REQUEST['cmd'];
         $uid  = $_REQUEST['uid'];
         switch ($act) {
@@ -170,7 +172,7 @@ function add($user) {
         $grps = explode(',',$grp);
 
         // append the groups to the user
-        if ($this->users[$user]) {
+        if (isset($this->users[$user])) {
             $this->users[$user] = array_merge($this->users[$user],$grps);
             $this->users[$user] = array_unique($this->users[$user]);
         } else {
@@ -392,18 +394,20 @@ function add($user) {
         ptln('    <th class="user">'.hsc($this->getLang('users')).'</th>');
         ptln('    <th class="act"> </th>');
         ptln('  </tr>');
-        foreach ($this->groups as $group => $users) {
-            ptln('  <tr>');
-            ptln('    <td>'.hsc($group).'</td>');
-            ptln('    <td>'.hsc(implode(', ',$users)).'</td>');
-            ptln('    <td class="act">');
-            ptln('      <a class="vg_edit" href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'editgroup' ,'uid'=>$group, 'sectok'=>getSecurityToken())).'">'.hsc($this->getLang('edit')).'</a>');
-            ptln(' &bull; ');
-            ptln('      <a class="vg_del" href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'delgroup','uid'=>$group, 'sectok'=>getSecurityToken())).'">'.hsc($this->getLang('del')).'</a>');
-            ptln('    </td>');
-            ptln('  </tr>');
+        if ($this->groups) {
+            foreach ($this->groups as $group => $users) {
+                ptln('  <tr>');
+                ptln('    <td>'.hsc($group).'</td>');
+                ptln('    <td>'.hsc(implode(', ',$users)).'</td>');
+                ptln('    <td class="act">');
+                ptln('      <a class="vg_edit" href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'editgroup' ,'uid'=>$group, 'sectok'=>getSecurityToken())).'">'.hsc($this->getLang('edit')).'</a>');
+                ptln(' &bull; ');
+                ptln('      <a class="vg_del" href="'.wl($ID,array('do'=>'admin','page'=>$this->getPluginName(),'cmd'=>'delgroup','uid'=>$group, 'sectok'=>getSecurityToken())).'">'.hsc($this->getLang('del')).'</a>');
+                ptln('    </td>');
+                ptln('  </tr>');
+            }
         }
-    
+
         ptln('</table>');
     }
 }

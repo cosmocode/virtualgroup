@@ -19,7 +19,7 @@ class action_plugin_virtualgroup extends DokuWiki_Action_Plugin {
         global $USERINFO;
         global $auth;
         global $INFO;
-        if (!$_SERVER['REMOTE_USER']) {
+        if (!isset($_SERVER['REMOTE_USER'])) {
             return;
         }
 
