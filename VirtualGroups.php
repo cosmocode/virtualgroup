@@ -6,7 +6,7 @@ use dokuwiki\Logger;
 
 class VirtualGroups
 {
-    const CONFIG_FILE = DOKU_CONF . 'virtualgrp.conf';
+    const CONFIG_FILE = DOKU_CONF . 'virtualgroup.conf';
 
     /**
      * Get the configuration by user
@@ -209,14 +209,19 @@ class VirtualGroups
      */
     protected function saveConfig($config)
     {
-        $lines = [];
+        global $INPUT;
+
+        $lines = [
+            '# This file is managed by the virtualgroup plugin',
+            '# Last saved by ' . $INPUT->server->str('REMOTE_USER') . ' on ' . date('Y-m-d H:i:s'),
+            ''
+        ];
         foreach ($config as $user => $groups) {
             $lines[] = auth_nameencode($user) . "\t" . implode(',', array_map(function ($group) {
                     return auth_nameencode($group);
                 }, $groups));
         }
 
-        # FIXME add comment
         $ok = file_put_contents(self::CONFIG_FILE, join("\n", $lines));
         if($ok === false) {
             msg('Failed to save virtual group configuration', -1);
