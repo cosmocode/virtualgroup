@@ -222,13 +222,15 @@ class admin_plugin_virtualgroup extends AdminPlugin
 
         $tab = $INPUT->str('tab', 'byuser');
 
-
+        echo '<div class="plugin-virtualgroup">';
+        echo '<h1>' . hsc($this->getLang('menu')) . '</h1>';
         $this->tabNavigation($tab);
         if ($tab == 'bygroup') {
             $this->listByGroup();
         } else {
             $this->listByUser();
         }
+        echo '</div>';
     }
 
     /**
@@ -250,7 +252,7 @@ class admin_plugin_virtualgroup extends AdminPlugin
         );
         echo sprintf(
             '<li class="%s"><a href="%s">%s</a></li>',
-            $tab == 'byuser' ? 'active' : '',
+            $tab == 'bygroup' ? 'active' : '',
             wl($ID, ['do' => 'admin', 'page' => $this->getPluginName(), 'tab' => 'bygroup']),
             $this->getLang('bygroup')
         );
@@ -285,15 +287,18 @@ class admin_plugin_virtualgroup extends AdminPlugin
             echo '<tr>';
             echo '  <td>' . hsc($user) . '</td>';
             echo '  <td>' . hsc(implode(', ', $groups)) . '</td>';
-            echo '  <td class="act">';
+            echo '  <td class="act"><div>';
             echo $this->buttonDeleteUser($user);
             echo '<a class="button" href="' . wl($ID, [
                     'do' => 'admin',
                     'page' => 'virtualgroup',
                     'tab' => 'byuser',
                     'loaduser' => $user
-                ]) . '">' . hsc($this->getLang('edit')) . '</a>';
-            echo '  </td>';
+                ]) . '">';
+            echo inlineSVG(__DIR__ . '/images/pencil.svg');
+            echo '<span>'.$this->getLang('edit').'</span>';
+            echo '</a>';
+            echo '  </div></td>';
             echo '</tr>';
         }
         echo '</table>';
@@ -326,15 +331,18 @@ class admin_plugin_virtualgroup extends AdminPlugin
             echo '<tr>';
             echo '  <td>' . hsc($group) . '</td>';
             echo '  <td>' . hsc(implode(', ', $users)) . '</td>';
-            echo '  <td class="act">';
+            echo '  <td class="act"><div>';
             echo $this->buttonDeleteGroup($group);
             echo '<a class="button" href="' . wl($ID, [
                     'do' => 'admin',
                     'page' => 'virtualgroup',
                     'tab' => 'bygroup',
                     'loadgroup' => $group
-                ]) . '">' . hsc($this->getLang('edit')) . '</a>';
-            echo '  </td>';
+                ]) . '">';
+            echo inlineSVG(__DIR__ . '/images/pencil.svg');
+            echo '<span>'.$this->getLang('edit').'</span>';
+            echo '</a>';
+            echo '  </div></td>';
             echo '</tr>';
         }
         echo '</table>';
@@ -352,8 +360,8 @@ class admin_plugin_virtualgroup extends AdminPlugin
             ['action' => wl($ID, ['do' => 'admin', 'page' => 'virtualgroup', 'tab' => 'byuser'], false, '&')]
         );
         $form->addFieldsetOpen($this->getLang('addUserGroups'));
-        $form->addTextInput('user', $this->getLang('user'));
-        $form->addTextInput('groups', $this->getLang('grps'));
+        $form->addTextInput('user', $this->getLang('user'))->attr('placeholder', $this->getLang('user'));
+        $form->addTextInput('groups', $this->getLang('grps'))->attr('placeholder', $this->getLang('grpsSample'));
         $form->addButton('addusergroups', $this->getLang('add'))->attr('type', 'submit');
         $form->addFieldsetClose();
         return $form->toHTML();
@@ -372,7 +380,7 @@ class admin_plugin_virtualgroup extends AdminPlugin
         );
         $form->addFieldsetOpen($this->getLang('editUserGroups'));
         $form->addTextInput('user', $this->getLang('user'))->attr('readonly', 'readonly');
-        $form->addTextInput('groups', $this->getLang('grps'));
+        $form->addTextInput('groups', $this->getLang('grps'))->attr('placeholder', $this->getLang('grpsSample'));
         $form->addButton('editusergroups', $this->getLang('change'))->attr('type', 'submit');
         $form->addFieldsetClose();
         return $form->toHTML();
@@ -390,7 +398,10 @@ class admin_plugin_virtualgroup extends AdminPlugin
             ['action' => wl($ID, ['do' => 'admin', 'page' => 'virtualgroup', 'tab' => 'byuser'], false, '&')]
         );
         $form->setHiddenField('user', $user);
-        $form->addButton('deleteuser', $this->getLang('del'))->attr('type', 'submit');
+        $form->addButtonHTML(
+            'deleteuser',
+            inlineSVG(__DIR__ . '/images/delete.svg'). '<span>'.$this->getLang('del').'</span>'
+        )->attr('type', 'submit');
         return $form->toHTML();
     }
 
@@ -406,8 +417,8 @@ class admin_plugin_virtualgroup extends AdminPlugin
             ['action' => wl($ID, ['do' => 'admin', 'page' => 'virtualgroup', 'tab' => 'bygroup'], false, '&')]
         );
         $form->addFieldsetOpen($this->getLang('addGroupUsers'));
-        $form->addTextInput('group', $this->getLang('grp'));
-        $form->addTextInput('users', $this->getLang('users'));
+        $form->addTextInput('group', $this->getLang('grp'))->attr('placeholder', $this->getLang('grp'));
+        $form->addTextInput('users', $this->getLang('users'))->attr('placeholder', $this->getLang('usersSample'));
         $form->addButton('addgroupusers', $this->getLang('add'))->attr('type', 'submit');
         $form->addFieldsetClose();
         return $form->toHTML();
@@ -426,7 +437,7 @@ class admin_plugin_virtualgroup extends AdminPlugin
         );
         $form->addFieldsetOpen($this->getLang('editGroupUsers'));
         $form->addTextInput('group', $this->getLang('grp'))->attr('readonly', 'readonly');
-        $form->addTextInput('users', $this->getLang('users'));
+        $form->addTextInput('users', $this->getLang('users'))->attr('placeholder', $this->getLang('usersSample'));
         $form->addButton('editgroupusers', $this->getLang('change'))->attr('type', 'submit');
         $form->addFieldsetClose();
         return $form->toHTML();
@@ -444,7 +455,10 @@ class admin_plugin_virtualgroup extends AdminPlugin
             ['action' => wl($ID, ['do' => 'admin', 'page' => 'virtualgroup', 'tab' => 'bygroup'], false, '&')]
         );
         $form->setHiddenField('group', $group);
-        $form->addButton('deletegroup', $this->getLang('del'))->attr('type', 'submit');
+        $form->addButtonHTML(
+            'deletegroup',
+            inlineSVG(__DIR__ . '/images/delete.svg'). '<span>'.$this->getLang('del').'</span>'
+        )->attr('type', 'submit');
         return $form->toHTML();
     }
 

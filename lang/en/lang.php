@@ -21,8 +21,10 @@ $lang['editGroupUsers'] = 'Edit users of group';
 
 $lang['user'] = 'User';
 $lang['users'] = 'Users';
+$lang['usersSample'] = 'user1, user2, user3';
 $lang['grp']  = 'Group';
 $lang['grps'] = 'Groups';
+$lang['grpsSample'] = 'group1, group2, group3';
 
 $lang['add'] = 'Add';
 $lang['del'] = 'Delete';
