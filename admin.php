@@ -2,11 +2,11 @@
 
 use dokuwiki\Extension\AdminPlugin;
 
-if (!defined('DOKU_INC')) define('DOKU_INC', realpath(__DIR__ . '/../../') . '/');
-if (!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN', DOKU_INC . 'lib/plugins/');
-require_once(DOKU_PLUGIN . 'admin.php');
-require_once(DOKU_INC . 'inc/common.php');
-
+/**
+ * DokuWiki Plugin virtualgroup (Admin Component)
+ *
+ * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
+ */
 class admin_plugin_virtualgroup extends AdminPlugin
 {
     public $users;
@@ -30,26 +30,17 @@ class admin_plugin_virtualgroup extends AdminPlugin
         }
     }
 
-    public function getInfo()
-    {
-        return confToHash(__DIR__ . '/plugin.info.txt');
-    }
-
-    public function getMenuSort()
-    {
-        return 999;
-    }
-
     /**
      * handle user request
      */
     public function handle()
     {
         global $auth;
+        global $INPUT;
         $this->_load();
 
-        $act  = $_REQUEST['cmd'];
-        $uid  = $_REQUEST['uid'];
+        $act  = $INPUT->str('cmd');
+        $uid  = $INPUT->str('uid');
         switch ($act) {
             case 'del':
                 $this->del($uid);
@@ -74,11 +65,12 @@ class admin_plugin_virtualgroup extends AdminPlugin
 
     public function edit($user)
     {
+        global $INPUT;
         if (!checkSecurityToken()) return false;
         $grp = [];
         // on input change the data
-        if (isset($_REQUEST['grp']) && isset($this->users[$user])) {
-            $grp = $_REQUEST['grp'];
+        if ($INPUT->has('grp') && isset($this->users[$user])) {
+            $grp = $INPUT->str('grp');
 
             // get the groups as array
             $grp = str_replace(' ', '', $grp);
@@ -98,12 +90,13 @@ class admin_plugin_virtualgroup extends AdminPlugin
 
     public function editgroup($group)
     {
+        global $INPUT;
         if (!checkSecurityToken()) return false;
 
         // on input change the data
-        if (isset($_REQUEST['users']) && isset($this->groups[$group])) {
+        if ($INPUT->has('users') && isset($this->groups[$group])) {
             // get the users as array
-            $users = str_replace(' ', '', $_REQUEST['users']);
+            $users = str_replace(' ', '', $INPUT->str('users'));
             $users = array_unique(explode(',', $users));
 
             // delete removed users from group
@@ -171,8 +164,9 @@ class admin_plugin_virtualgroup extends AdminPlugin
 
     public function add($user)
     {
+        global $INPUT;
         if (!checkSecurityToken()) return false;
-        $grp = $_REQUEST['grp'];
+        $grp = $INPUT->str('grp');
         if (empty($user)) {
             msg($this->getLang('nouser'), -1);
             return;
@@ -200,19 +194,20 @@ class admin_plugin_virtualgroup extends AdminPlugin
 
     public function addgroup($group)
     {
+        global $INPUT;
         if (!checkSecurityToken()) return false;
 
         if (empty($group)) {
             msg($this->getLang('nogrp'), -1);
             return;
         }
-        if (empty($_REQUEST['users'])) {
+        if (empty($INPUT->str('users'))) {
             msg($this->getLang('nouser'), -1);
             return;
         }
 
         // get the users as array
-        $users = str_replace(' ', '', $_REQUEST['users']);
+        $users = str_replace(' ', '', $INPUT->str('users'));
         $users = array_unique(explode(',', $users));
 
         // add new users to group
