@@ -6,7 +6,7 @@ use dokuwiki\Logger;
 
 class VirtualGroups
 {
-    const CONFIG_FILE = DOKU_CONF . 'virtualgroup.conf';
+    public const CONFIG_FILE = DOKU_CONF . 'virtualgroup.conf';
 
     /**
      * Get the configuration by user
@@ -26,12 +26,10 @@ class VirtualGroups
      * @param string $user
      * @return string[]
      */
-    public function getUserGroups($user) {
+    public function getUserGroups($user)
+    {
         $config = $this->loadConfig();
-        if (isset($config[$user])) {
-            return $config[$user];
-        }
-        return [];
+        return $config[$user] ?? [];
     }
 
     /**
@@ -40,7 +38,8 @@ class VirtualGroups
      * @param string $group
      * @return string[]
      */
-    public function getGroupUsers($group) {
+    public function getGroupUsers($group)
+    {
         $config = $this->loadConfig();
         $users = [];
         foreach ($config as $user => $groups) {
@@ -116,7 +115,7 @@ class VirtualGroups
     {
         $config = $this->loadConfig();
         $config[$user] = array_filter($groups);
-        if($config[$user] === []) {
+        if ($config[$user] === []) {
             unset($config[$user]);
         }
         $this->saveConfig($config);
@@ -168,7 +167,7 @@ class VirtualGroups
             }
             $config[$user][] = $group;
             $config[$user] = array_filter(array_unique($config[$user]));
-            if($config[$user] === []) {
+            if ($config[$user] === []) {
                 unset($config[$user]);
             }
         }
@@ -192,9 +191,7 @@ class VirtualGroups
         $raw = linesToHash(file(self::CONFIG_FILE));
         foreach ($raw as $key => $value) {
             $user = rawurldecode($key);
-            $groups = array_map(function ($group) {
-                return rawurldecode(trim($group));
-            }, explode(',', $value));
+            $groups = array_map(static fn($group) => rawurldecode(trim($group)), explode(',', $value));
             $config[$user] = $groups;
         }
 
@@ -217,23 +214,22 @@ class VirtualGroups
             ''
         ];
         foreach ($config as $user => $groups) {
-            $lines[] = auth_nameencode($user) . "\t" . implode(',', array_map(function ($group) {
-                    return auth_nameencode($group);
-                }, $groups));
+            $lines[] = auth_nameencode($user) . "\t" .
+                implode(',', array_map(static fn($group) => auth_nameencode($group), $groups));
         }
 
-        $ok = file_put_contents(self::CONFIG_FILE, join("\n", $lines));
-        if($ok === false) {
+        $ok = file_put_contents(self::CONFIG_FILE, implode("\n", $lines));
+        if ($ok === false) {
             msg('Failed to save virtual group configuration', -1);
         }
-        return (bool) $ok;
+        return (bool)$ok;
     }
 
     /**
      * Load the legacy configuration
      *
-     * @deprecated
      * @return array [user => [group1, group2, ...], ...]
+     * @deprecated
      */
     protected function loadLegacyConfig()
     {
@@ -255,12 +251,12 @@ class VirtualGroups
         if ($users === false) {
             Logger::error('Failed to parse virtualgrp.php configuration file. File will be deleted.');
             @unlink($userFile);
-            return[];
+            return [];
         }
 
         // save in new format
         $ok = $this->saveConfig($users);
-        if($ok) {
+        if ($ok) {
             @unlink($userFile);
         }
 

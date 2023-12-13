@@ -1,5 +1,6 @@
 <?php
 
+use dokuwiki\Form\Form;
 use dokuwiki\Extension\AdminPlugin;
 use dokuwiki\plugin\virtualgroup\VirtualGroups;
 
@@ -10,15 +11,6 @@ use dokuwiki\plugin\virtualgroup\VirtualGroups;
  */
 class admin_plugin_virtualgroup extends AdminPlugin
 {
-    public $users;
-    public $groups;
-    public $_auth;        // auth object
-
-    public $editgroup = false;
-    public $edit = false;
-
-    public $data = [];
-
     /** @var VirtualGroups */
     protected $virtualGroups;
 
@@ -58,21 +50,20 @@ class admin_plugin_virtualgroup extends AdminPlugin
         // load user data if requested
         if ($INPUT->has('loaduser')) {
             $INPUT->set('user', $auth->cleanUser($INPUT->str('loaduser')));
-            $INPUT->set('groups', implode(',',
-                    $this->virtualGroups->getUserGroups($auth->cleanUser($INPUT->str('loaduser')))
-                )
-            );
+            $INPUT->set('groups', implode(
+                ',',
+                $this->virtualGroups->getUserGroups($auth->cleanUser($INPUT->str('loaduser')))
+            ));
         }
 
         // load group data if requested
         if ($INPUT->has('loadgroup')) {
             $INPUT->set('group', $auth->cleanGroup($INPUT->str('loadgroup')));
-            $INPUT->set('users', implode(',',
-                    $this->virtualGroups->getGroupUsers($auth->cleanGroup($INPUT->str('loadgroup')))
-                )
-            );
+            $INPUT->set('users', implode(
+                ',',
+                $this->virtualGroups->getGroupUsers($auth->cleanGroup($INPUT->str('loadgroup')))
+            ));
         }
-
     }
 
     /**
@@ -82,16 +73,14 @@ class admin_plugin_virtualgroup extends AdminPlugin
      * @param string $groups comma separated list of groups
      * @return void
      */
-    public function addUserGroups($user, $groups)
+    protected function addUserGroups($user, $groups)
     {
         global $auth;
 
         if (!checkSecurityToken()) return;
         $user = $auth->cleanUser($user);
         $groups = array_unique(array_map(
-            function ($group) use ($auth) {
-                return $auth->cleanGroup($group);
-            },
+            static fn($group) => $auth->cleanGroup($group),
             explode(',', $groups)
         ));
 
@@ -107,16 +96,14 @@ class admin_plugin_virtualgroup extends AdminPlugin
      * @param string $users comma separated list of users
      * @return void
      */
-    public function addGroupUsers($group, $users)
+    protected function addGroupUsers($group, $users)
     {
         global $auth;
 
         if (!checkSecurityToken()) return;
         $group = $auth->cleanGroup($group);
         $users = array_unique(array_map(
-            function ($user) use ($auth) {
-                return $auth->cleanUser($user);
-            },
+            static fn($user) => $auth->cleanUser($user),
             explode(',', $users)
         ));
 
@@ -131,7 +118,7 @@ class admin_plugin_virtualgroup extends AdminPlugin
      * @param string $user user name
      * @return void
      */
-    public function deleteUser($user)
+    protected function deleteUser($user)
     {
         global $auth;
 
@@ -149,7 +136,7 @@ class admin_plugin_virtualgroup extends AdminPlugin
      * @param string $group group name
      * @return void
      */
-    public function deleteGroup($group)
+    protected function deleteGroup($group)
     {
         global $auth;
 
@@ -168,16 +155,14 @@ class admin_plugin_virtualgroup extends AdminPlugin
      * @param string $groups comma separated list of groups
      * @return void
      */
-    public function editUserGroups($user, $groups)
+    protected function editUserGroups($user, $groups)
     {
         global $auth;
 
         if (!checkSecurityToken()) return;
         $user = $auth->cleanUser($user);
         $groups = array_unique(array_map(
-            function ($group) use ($auth) {
-                return $auth->cleanGroup($group);
-            },
+            static fn($group) => $auth->cleanGroup($group),
             explode(',', $groups)
         ));
 
@@ -193,16 +178,14 @@ class admin_plugin_virtualgroup extends AdminPlugin
      * @param string $users comma separated list of users
      * @return void
      */
-    public function editGroupUsers($group, $users)
+    protected function editGroupUsers($group, $users)
     {
         global $auth;
 
         if (!checkSecurityToken()) return;
         $group = $auth->cleanGroup($group);
         $users = array_unique(array_map(
-            function ($user) use ($auth) {
-                return $auth->cleanUser($user);
-            },
+            static fn($user) => $auth->cleanUser($user),
             explode(',', $users)
         ));
 
@@ -257,7 +240,6 @@ class admin_plugin_virtualgroup extends AdminPlugin
             $this->getLang('bygroup')
         );
         echo '</ul>';
-
     }
 
     /**
@@ -296,7 +278,7 @@ class admin_plugin_virtualgroup extends AdminPlugin
                     'loaduser' => $user
                 ]) . '">';
             echo inlineSVG(__DIR__ . '/images/pencil.svg');
-            echo '<span>'.$this->getLang('edit').'</span>';
+            echo '<span>' . $this->getLang('edit') . '</span>';
             echo '</a>';
             echo '  </div></td>';
             echo '</tr>';
@@ -340,7 +322,7 @@ class admin_plugin_virtualgroup extends AdminPlugin
                     'loadgroup' => $group
                 ]) . '">';
             echo inlineSVG(__DIR__ . '/images/pencil.svg');
-            echo '<span>'.$this->getLang('edit').'</span>';
+            echo '<span>' . $this->getLang('edit') . '</span>';
             echo '</a>';
             echo '  </div></td>';
             echo '</tr>';
@@ -356,7 +338,7 @@ class admin_plugin_virtualgroup extends AdminPlugin
     protected function formAddUserGroups()
     {
         global $ID;
-        $form = new dokuwiki\Form\Form(
+        $form = new Form(
             ['action' => wl($ID, ['do' => 'admin', 'page' => 'virtualgroup', 'tab' => 'byuser'], false, '&')]
         );
         $form->addFieldsetOpen($this->getLang('addUserGroups'));
@@ -375,7 +357,7 @@ class admin_plugin_virtualgroup extends AdminPlugin
     protected function formEditUserGroups()
     {
         global $ID;
-        $form = new dokuwiki\Form\Form(
+        $form = new Form(
             ['action' => wl($ID, ['do' => 'admin', 'page' => 'virtualgroup', 'tab' => 'byuser'], false, '&')]
         );
         $form->addFieldsetOpen($this->getLang('editUserGroups'));
@@ -394,13 +376,13 @@ class admin_plugin_virtualgroup extends AdminPlugin
     protected function buttonDeleteUser($user)
     {
         global $ID;
-        $form = new dokuwiki\Form\Form(
+        $form = new Form(
             ['action' => wl($ID, ['do' => 'admin', 'page' => 'virtualgroup', 'tab' => 'byuser'], false, '&')]
         );
         $form->setHiddenField('user', $user);
         $form->addButtonHTML(
             'deleteuser',
-            inlineSVG(__DIR__ . '/images/delete.svg'). '<span>'.$this->getLang('del').'</span>'
+            inlineSVG(__DIR__ . '/images/delete.svg') . '<span>' . $this->getLang('del') . '</span>'
         )->attr('type', 'submit');
         return $form->toHTML();
     }
@@ -413,7 +395,7 @@ class admin_plugin_virtualgroup extends AdminPlugin
     protected function formAddGroupUsers()
     {
         global $ID;
-        $form = new dokuwiki\Form\Form(
+        $form = new Form(
             ['action' => wl($ID, ['do' => 'admin', 'page' => 'virtualgroup', 'tab' => 'bygroup'], false, '&')]
         );
         $form->addFieldsetOpen($this->getLang('addGroupUsers'));
@@ -432,7 +414,7 @@ class admin_plugin_virtualgroup extends AdminPlugin
     protected function formEditGroupUsers()
     {
         global $ID;
-        $form = new dokuwiki\Form\Form(
+        $form = new Form(
             ['action' => wl($ID, ['do' => 'admin', 'page' => 'virtualgroup', 'tab' => 'bygroup'], false, '&')]
         );
         $form->addFieldsetOpen($this->getLang('editGroupUsers'));
@@ -451,13 +433,13 @@ class admin_plugin_virtualgroup extends AdminPlugin
     protected function buttonDeleteGroup($group)
     {
         global $ID;
-        $form = new dokuwiki\Form\Form(
+        $form = new Form(
             ['action' => wl($ID, ['do' => 'admin', 'page' => 'virtualgroup', 'tab' => 'bygroup'], false, '&')]
         );
         $form->setHiddenField('group', $group);
         $form->addButtonHTML(
             'deletegroup',
-            inlineSVG(__DIR__ . '/images/delete.svg'). '<span>'.$this->getLang('del').'</span>'
+            inlineSVG(__DIR__ . '/images/delete.svg') . '<span>' . $this->getLang('del') . '</span>'
         )->attr('type', 'submit');
         return $form->toHTML();
     }
