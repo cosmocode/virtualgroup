@@ -33,12 +33,11 @@ class action_plugin_virtualgroup extends ActionPlugin
         $user = $INPUT->server->str('REMOTE_USER');
         if (!$user) return;
 
-        $virtualGroups = new VirtualGroups();
-        $groupinfo = $virtualGroups->getUserStructure();
-        if (!isset($groupinfo[$user])) return;
+        $virtualgroups = (new VirtualGroups())->getUserGroups($user);
+        if (!$virtualgroups) return;
 
         if (!isset($USERINFO['grps'])) $USERINFO['grps'] = [];
-        $grps = array_unique(array_merge($USERINFO['grps'], $groupinfo[$user]));
+        $grps = array_unique(array_merge($USERINFO['grps'], $virtualgroups));
         $USERINFO['grps'] = $grps;
         $_SESSION[DOKU_COOKIE]['auth']['info']['grps'] = $grps;
         $INFO = pageinfo();
