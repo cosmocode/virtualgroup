@@ -1,0 +1,53 @@
+.plugin-virtualgroup {
+    * {
+        box-sizing: border-box;
+    }
+
+    form fieldset {
+        width: 100%;
+        margin-top: 1em;
+        margin-bottom: 1em;
+
+        label {
+            font-weight: bold;
+        }
+    }
+
+    table {
+        width: 100%;
+
+        td.act {
+            > div {
+                display: flex;
+                gap: 0.5em;
+                justify-content: end;
+            }
+
+            svg {
+                width: 1em;
+                height: 1em;
+            }
+
+            form {
+                display: inline-block;
+                margin: 0;
+                padding: 0;
+            }
+
+            button, .button {
+                height: 1.5em;
+                padding: 0 0.5em;
+                margin: 0;
+
+                font-size: 1em;
+                text-decoration: none;
+
+                display: inline-flex;
+                align-items: center;
+                gap: 0.25em;
+
+                outline: none;
+            }
+        }
+    }
+}

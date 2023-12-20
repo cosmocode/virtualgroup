@@ -1,75 +1,45 @@
 <?php
-if(!defined('DOKU_INC')) die();
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
 
-require_once DOKU_PLUGIN.'action.php';
-class action_plugin_virtualgroup extends DokuWiki_Action_Plugin {
+use dokuwiki\Extension\ActionPlugin;
+use dokuwiki\Extension\Event;
+use dokuwiki\Extension\EventHandler;
+use dokuwiki\plugin\virtualgroup\VirtualGroups;
 
-    var $users;
-
-    function getInfo(){
-        return confToHash(dirname(__FILE__).'/plugin.info.txt');
-    }
-
-    function register(Doku_Event_Handler $controller) {
-        $controller->register_hook('DOKUWIKI_STARTED', 'BEFORE', $this,'start');
-    }
-
-    function start(&$event, $param) {
-        global $USERINFO;
-        global $auth;
-        global $INFO;
-        if (!$_SERVER['REMOTE_USER']) {
-            return;
-        }
-
-        $this->_load();
-        if (!isset($this->users[$_SERVER['REMOTE_USER']])) {
-            return;
-        }
-        if (!isset($USERINFO['grps'])) {
-            $USERINFO['grps'] = array();
-        }
-        $grps = array_unique(array_merge($USERINFO['grps'],$this->users[$_SERVER['REMOTE_USER']]));
-        $USERINFO['grps']       = $grps;
-        $_SESSION[DOKU_COOKIE]['auth']['info']['grps'] = $grps;
-        $INFO = pageinfo();
+/**
+ * DokuWiki Plugin virtualgroup (Action Component)
+ *
+ * @license GPL 2 http://www.gnu.org/licenses/gpl-2.0.html
+ */
+class action_plugin_virtualgroup extends ActionPlugin
+{
+    /** @inheritdoc */
+    public function register(EventHandler $controller)
+    {
+        $controller->register_hook('DOKUWIKI_INIT_DONE', 'BEFORE', $this, 'start');
     }
 
     /**
-     * load the users -> group connection
+     * Add the virtual groups to the current user
+     *
+     * @param Event $event DOKUWIKI_INIT_DONE
+     * @return void
      */
-    function _load() {
-        global $conf;
-        // determine the path to the data
-        $userFile = $conf['savedir'] . '/virtualgrp.php';
+    public function start(Event $event)
+    {
+        global $USERINFO;
+        global $INFO;
+        global $INPUT;
 
-        // if there is no file we hava no data ;-)
-        if (!is_file($userFile)) {
-            $this->users = array();
-            return;
-        }
+        $user = $INPUT->server->str('REMOTE_USER');
+        if (!$user) return;
 
-        // read the file
-        $content = file_get_contents($userFile);
+        $virtualgroups = (new VirtualGroups())->getUserGroups($user);
+        if (!$virtualgroups) return;
 
-        // if its empty we have no data also
-        if (empty($content)) {
-            $this->users = array();
-            return;
-        }
-
-        $users = unserialize($content);
-        // check for invalid data
-        if ($users === FALSE) {
-            $this->users = array();
-            @unlink($userFile);
-            return;
-        }
-
-        // place the users array
-        $this->users = $users;
+        if (!isset($USERINFO['grps'])) $USERINFO['grps'] = [];
+        $grps = array_unique(array_merge($USERINFO['grps'], $virtualgroups));
+        $USERINFO['grps'] = $grps;
+        $_SESSION[DOKU_COOKIE]['auth']['info']['grps'] = $grps;
+        $INFO = pageinfo();
     }
 }
-
-?>
